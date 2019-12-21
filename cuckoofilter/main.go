@@ -13,11 +13,11 @@ import (
 type bucket []fingerprint
 type fingerprint []byte
 
-var (
-	hasher  = sha1.New()
-	retries = 500 // how many times do we try to move items around?
-)
+var hasher = sha1.New()
 
+const retries = 500 // how many times do we try to move items around?
+
+// Cuckoo filter based on https://www.pdl.cmu.edu/PDL-FTP/FS/cuckoo-conext2014.pdf
 type Cuckoo struct {
 	buckets []bucket
 	m       int // buckets
@@ -53,19 +53,38 @@ func NewCuckoo(n int, fp float64) *Cuckoo {
 	}
 }
 
-// lookup needle in the cuckoo nest :)
-func (c *Cuckoo) lookup(needle string) bool {
+// delete the fingerprint from the cuckoo filter
+func (c *Cuckoo) delete(needle string) {
 	i1, i2, f := c.hashes(needle)
-	return c.buckets[i1%c.m].contains(f) || c.buckets[i2%c.m].contains(f)
+	// try to remove from f1
+	b1 := c.buckets[i1%c.m]
+	if ind, ok := b1.contains(f); ok {
+		b1[ind] = nil
+		return
+	}
+
+	b2 := c.buckets[i2%c.m]
+	if ind, ok := b2.contains(f); ok {
+		b2[ind] = nil
+		return
+	}
 }
 
-func (b bucket) contains(f fingerprint) bool {
-	for _, x := range b {
+// lookup needle in the cuckoo filter
+func (c *Cuckoo) lookup(needle string) bool {
+	i1, i2, f := c.hashes(needle)
+	_, b1 := c.buckets[i1%c.m].contains(f)
+	_, b2 := c.buckets[i2%c.m].contains(f)
+	return b1 || b2
+}
+
+func (b bucket) contains(f fingerprint) (int, bool) {
+	for i, x := range b {
 		if bytes.Equal(x, f) {
-			return true
+			return i, true
 		}
 	}
-	return false
+	return -1, false
 }
 
 func (c *Cuckoo) insert(input string) {

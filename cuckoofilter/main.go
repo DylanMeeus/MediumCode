@@ -20,11 +20,10 @@ const retries = 500 // how many times do we try to move items around?
 // Cuckoo filter based on https://www.pdl.cmu.edu/PDL-FTP/FS/cuckoo-conext2014.pdf
 type Cuckoo struct {
 	buckets []bucket
-	m       int // buckets
-	b       int // entries per bucket
-	f       int // fingerprint length
-	count   int // items in filter
-	n       int // filter capacity (rename cap?)
+	m       uint // buckets
+	b       uint // entries per bucket
+	f       uint // fingerprint length
+	n       uint // filter capacity (rename cap?)
 }
 
 func main() {
@@ -33,15 +32,18 @@ func main() {
 	c.insert("world")
 	ok := c.lookup("world")
 	fmt.Printf("%v\n", ok)
+	c.delete("world")
+	ok = c.lookup("world")
+	fmt.Printf("%v\n", ok)
 }
 
 // n = len(items), fp = false positive rate
-func NewCuckoo(n int, fp float64) *Cuckoo {
-	b := 4
+func NewCuckoo(n uint, fp float64) *Cuckoo {
+	b := uint(4)
 	f := fingerprintLength(b, fp)
 	m := nextPower(n / f * 8)
 	buckets := make([]bucket, m)
-	for i := 0; i < m; i++ {
+	for i := uint(0); i < m; i++ {
 		buckets[i] = make(bucket, b)
 	}
 	return &Cuckoo{
@@ -93,14 +95,12 @@ func (c *Cuckoo) insert(input string) {
 	b1 := c.buckets[i1%c.m]
 	if i, err := b1.nextIndex(); err == nil {
 		b1[i] = f
-		c.count++
 		return
 	}
 
 	b2 := c.buckets[i2%c.m]
 	if i, err := b2.nextIndex(); err == nil {
 		b2[i] = f
-		c.count++
 		return
 	}
 
@@ -108,14 +108,13 @@ func (c *Cuckoo) insert(input string) {
 	i := i1
 	for r := 0; r < retries; r++ {
 		index := i % c.m
-		entryIndex := rand.Intn(c.b)
+		entryIndex := rand.Intn(int(c.b))
 		// swap
 		f, c.buckets[index][entryIndex] = c.buckets[index][entryIndex], f
-		i = i ^ int(binary.BigEndian.Uint32(hash(f)))
+		i = i ^ uint(binary.BigEndian.Uint32(hash(f)))
 		b := c.buckets[i%c.m]
 		if idx, err := b.nextIndex(); err == nil {
 			b[idx] = f
-			c.count++
 			return
 		}
 	}
@@ -133,11 +132,11 @@ func (b bucket) nextIndex() (int, error) {
 }
 
 // hashes returns h1, h2 and the fingerprint
-func (c *Cuckoo) hashes(data string) (int, int, fingerprint) {
+func (c *Cuckoo) hashes(data string) (uint, uint, fingerprint) {
 	h := hash([]byte(data))
 	f := h[0:c.f]
-	i1 := int(binary.BigEndian.Uint32(h))
-	i2 := i1 ^ int(binary.BigEndian.Uint32(hash(f)))
+	i1 := uint(binary.BigEndian.Uint32(h))
+	i2 := i1 ^ uint(binary.BigEndian.Uint32(hash(f)))
 	return i1, i2, fingerprint(f)
 }
 
@@ -148,8 +147,8 @@ func hash(data []byte) []byte {
 	return hash
 }
 
-func fingerprintLength(b int, e float64) int {
-	f := int(math.Ceil(math.Log(2 * float64(b) / e)))
+func fingerprintLength(b uint, e float64) uint {
+	f := uint(math.Ceil(math.Log(2 * float64(b) / e)))
 	f /= 8
 	if f < 1 {
 		return 1
@@ -157,7 +156,7 @@ func fingerprintLength(b int, e float64) int {
 	return f
 }
 
-func nextPower(i int) int {
+func nextPower(i uint) uint {
 	i--
 	i |= i >> 1
 	i |= i >> 2

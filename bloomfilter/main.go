@@ -17,7 +17,6 @@ var (
 )
 
 func main() {
-	fmt.Println("vim-go")
 	f := filter{}
 	f.set("hello")
 	f.set("world")

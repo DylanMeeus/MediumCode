@@ -3,10 +3,11 @@ package main
 import (
 	"fmt"
 	"hash/fnv"
+	"math/bits"
 )
 
 func main() {
-	fmt.Printf("%v\n", leftBitPosition(uint32(10)))
+	fmt.Printf("%v\n", leftmostActiveBit(uint32(16)))
 }
 
 type hyperLogLog struct {
@@ -33,14 +34,8 @@ func (h hyperLogLog) Add(data []byte) hyperLogLog {
 }
 
 
-func leftBitPosition(x uint32) uint32 {
-	// get the previous power of 2
-	x = x | (x >> 1)
-	x = x | (x >> 2)
-	x = x | (x >> 4)
-	x = x | (x >> 8)
-	x = x | (x >> 16)
-	return x - (x >> 1)
+func leftmostActiveBit(x uint32) int {
+	return 1 + bits.LeadingZeros32(x)
 }
 
 

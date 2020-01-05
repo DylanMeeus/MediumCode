@@ -80,7 +80,6 @@ func (h hyperLogLog) Count() uint64 {
 		sum += math.Pow(math.Pow(2, float64(v)),-1)
 	}
 	estimate := .79402 * m * m / sum
-	fmt.Printf("estimate: %v\n", estimate)
 	return uint64(estimate)
 }
 

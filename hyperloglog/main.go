@@ -7,23 +7,26 @@ import (
 	"math"
 	"fmt"
 	"math/rand"
+	"time"
 )
 
 func main() {
 	bs, is := getRandomData()
 	dt := classicCountDistinct(is)
-	h := NewHyperLogLog(32)
+	h := NewHyperLogLog(64)
 	for _, b := range bs {
 		h.Add(b)
 	}
 	hd := h.Count()
 	fmt.Printf("classic estimate: %v\n", dt)
 	fmt.Printf("hyperloglog estimate: %v\n", hd)
+	fmt.Printf("percentage missed: %.2f\n", 100. - (float64(hd) / float64(dt)) * 100)
 }
 
 // get random uint32s as a [][]byte slice
 func getRandomData() (out [][]byte, intout []uint32) {
-	for i := 0; i < 100000; i++ {
+	for i := 0; i < math.MaxInt16; i++ {
+		rand.Seed(time.Now().UnixNano())
 		i := rand.Uint32()
 		b := make([]byte, 4)
 		binary.LittleEndian.PutUint32(b, i)
@@ -70,13 +73,13 @@ func (h hyperLogLog) Add(data []byte) hyperLogLog {
 	return h
 }
 
-func (h *hyperLogLog) Count() uint64 {
+func (h hyperLogLog) Count() uint64 {
 	sum := 0.
 	m := float64(h.m)
 	for _, v := range h.registers {
-		sum += 1. / math.Pow(2, float64(v))
+		sum += math.Pow(math.Pow(2, float64(v)),-1)
 	}
-	estimate := 0.697 * m * m / sum
+	estimate := .79402 * m * m / sum
 	fmt.Printf("estimate: %v\n", estimate)
 	return uint64(estimate)
 }

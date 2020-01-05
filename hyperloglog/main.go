@@ -2,10 +2,10 @@ package main
 
 import (
 	"encoding/binary"
-	"hash/fnv"
-	"math/bits"
-	"math"
 	"fmt"
+	"hash/fnv"
+	"math"
+	"math/bits"
 	"math/rand"
 	"time"
 )
@@ -25,8 +25,8 @@ func main() {
 
 // get random uint32s as a [][]byte slice
 func getRandomData() (out [][]byte, intout []uint32) {
+	rand.Seed(time.Now().Unix())
 	for i := 0; i < math.MaxInt16; i++ {
-		rand.Seed(time.Now().UnixNano())
 		i := rand.Uint32()
 		b := make([]byte, 4)
 		binary.LittleEndian.PutUint32(b, i)

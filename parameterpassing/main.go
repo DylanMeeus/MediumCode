@@ -10,10 +10,6 @@ func main() {
 	s2.PrintOptions()
 }
 
-func magic() {
-	fun()
-}
-
 var defaultOptions = options{
 	maxCon:        4,
 	transportType: "UDP",
@@ -26,13 +22,14 @@ type options struct {
 	timeout       int
 }
 
-type ServerOption func(o *options) error
+type ServerOption func(o options) options
 
 type Server struct {
 	opts options
 }
 
 func (s Server) PrintOptions() {
+	fmt.Println("Server options..")
 	fmt.Println(s.opts.maxCon)
 	fmt.Println(s.opts.transportType)
 	fmt.Println(s.opts.timeout)
@@ -41,7 +38,7 @@ func (s Server) PrintOptions() {
 func NewServer(os ...ServerOption) Server {
 	opts := defaultOptions
 	for _, o := range os {
-		o(&opts)
+		opts = o(opts)
 	}
 	return Server{
 		opts: opts,
@@ -49,15 +46,15 @@ func NewServer(os ...ServerOption) Server {
 }
 
 func MaxCon(n int) ServerOption {
-	return func(o *options) error {
+	return func(o options) options {
 		o.maxCon = n
-		return nil
+		return o
 	}
 }
 
 func Timeout(n int) ServerOption {
-	return func(o *options) error {
+	return func(o options) options {
 		o.timeout = n
-		return nil
+		return o
 	}
 }

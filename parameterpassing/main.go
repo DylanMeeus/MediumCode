@@ -6,19 +6,25 @@ func main() {
 	s := NewServer()
 	s.PrintOptions()
 
-	s2 := NewServer(MaxCon(8), Timeout(-1))
+	s2 := NewServer(MaxCon(4), Transport(TCP))
 	s2.PrintOptions()
 }
 
+type transport int
+const (
+	TCP transport = iota
+	UDP
+)
+
 var defaultOptions = options{
 	maxCon:        4,
-	transportType: "UDP",
+	transportType: UDP,
 	timeout:       3000,
 }
 
 type options struct {
 	maxCon        int
-	transportType string
+	transportType transport
 	timeout       int
 }
 
@@ -30,9 +36,9 @@ type Server struct {
 
 func (s Server) PrintOptions() {
 	fmt.Println("Server options..")
-	fmt.Println(s.opts.maxCon)
-	fmt.Println(s.opts.transportType)
-	fmt.Println(s.opts.timeout)
+	fmt.Printf("maxCon: %v\n", s.opts.maxCon)
+	fmt.Printf("transport type: %v\n", ([]string{"TCP", "UDP"}[s.opts.transportType]))
+	fmt.Printf("timeout: %v\n", s.opts.timeout)
 }
 
 func NewServer(os ...ServerOption) Server {
@@ -55,6 +61,13 @@ func MaxCon(n int) ServerOption {
 func Timeout(n int) ServerOption {
 	return func(o options) options {
 		o.timeout = n
+		return o
+	}
+}
+
+func Transport(t transport) ServerOption {
+	return func(o options) options {
+		o.transportType = t
 		return o
 	}
 }

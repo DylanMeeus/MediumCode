@@ -11,10 +11,11 @@ import requests
 dploy_url = "https://3345423f-8bbf-4215-8004-215a3da67b60.users.dploy.ai/"
 
 def resize_img(img, BASEWIDTH):
-    wpercent = (BASEWIDTH / float(img.shape[0]))
-    hsize = int(img.shape[1] * wpercent)
-    wsize = int(img.shape[0] * wpercent)
-    dim = (hsize, wsize)
+    wpercent = (BASEWIDTH / float(img.shape[1]))
+    print(wpercent)
+    wsize = int(img.shape[1] * wpercent)
+    hsize = int(img.shape[0] * wpercent)
+    dim = (wsize, hsize)
     img = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
     return img
 
@@ -68,6 +69,7 @@ if __name__ == '__main__':
     cv2.imwrite("./blur.jpeg", open_cv_img)
     cv2.imshow("resized", open_cv_img)
     cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
     

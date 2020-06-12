@@ -61,7 +61,7 @@ if __name__ == '__main__':
         # rescale it 
         open_cv_img[y1:y2, x1:x2] = cv2.blur(open_cv_img[y1:y2, x1:x2], kernel)
 
-    cv2.imwrite(file_name + "_blurred" + "." + extension, open_cv_img)
+    cv2.imwrite(file_name.split(".")[0]+ "_blurred" + "." + extension, open_cv_img)
     cv2.imshow("resized", open_cv_img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()

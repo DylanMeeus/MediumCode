@@ -31,13 +31,12 @@ def detect_unmasked(file_name):
             'x-api-user': user_id,
             }
     r = requests.post(url = dploy_url, json={"image": encoded_image, "type": extension}, headers = headers)
-    print(r.text)
     data = json.loads(r.text)
 
 
     # get bounding boxes and results
     bbox, result, annotated_img = data['detected_face_coordinates'], data['detected_face_labels'], data['annotated_image']
-    not_masked_bbox = list(map(lambda k: k[0], filter(lambda x: x[1] == 'not masked', (zip(bbox, result)))))
+    not_masked_bbox = list(map(lambda k: k[0], filter(lambda x: x[1] == 'not masked', zip(bbox, result))))
     return (not_masked_bbox, annotated_img)
 
 

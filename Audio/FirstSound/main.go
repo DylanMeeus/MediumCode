@@ -26,12 +26,19 @@ func main() {
 }
 
 func generate() {
+	var (
+		start float64 = 1.0
+		end   float64 = 1.0e-4
+	)
 	nsamps := Duration * SampleRate
-	var angle float64 = tau / nsamps
+	var angle float64 = tau / float64(nsamps)
 	file := "out.bin"
 	f, _ := os.Create(file)
+	decayfac := math.Pow(end/start, 1.0/float64(nsamps))
 	for i := 0; i < nsamps; i++ {
 		sample := math.Sin(angle * Frequency * float64(i))
+		sample *= start
+		start *= decayfac
 		var buf [8]byte
 		binary.LittleEndian.PutUint32(buf[:], math.Float32bits(float32(sample)))
 		bw, err := f.Write(buf[:])
